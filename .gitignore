@@ -1,0 +1,31 @@
+<details> <summary>.gitignore</summary>
+markdown
+Copy
+Edit
+# Byte-compiled / generated files
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Virtual environments
+venv/
+ENV/
+env/
+.venv/
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+*.spec
+
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+</details>
