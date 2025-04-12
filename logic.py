@@ -10,7 +10,7 @@ from helpers import (
     get_output_folder,
     get_output_size,
     calculate_position,
-    resize_input_to_fit,
+    resize_input_relative,
     safe_scale
 )
 
@@ -32,7 +32,7 @@ def preview_sample(state):
 
         foreground = Image.open(sample_file).convert("RGBA")
         scale = safe_scale(state['resize_scale'].get()) / 100.0
-        resized_fg = resize_input_to_fit(foreground, background.size, scale)
+        resized_fg = resize_input_relative(foreground, scale)
 
         pos = calculate_position(background.size, resized_fg.size, state['position_option'].get())
         background.paste(resized_fg, pos, resized_fg)
@@ -79,7 +79,7 @@ def process_images(state):
         for idx, file_path in enumerate(input_files):
             try:
                 foreground = Image.open(file_path).convert("RGBA")
-                fg_resized = resize_input_to_fit(foreground, background.size, scale)
+                fg_resized = resize_input_relative(foreground, scale)
 
                 bg_copy = background.copy()
                 pos = calculate_position(bg_copy.size, fg_resized.size, alignment)

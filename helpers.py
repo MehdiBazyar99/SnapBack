@@ -63,14 +63,14 @@ def calculate_position(bg_size, fg_size, alignment):
     }
     return positions.get(alignment, (0, 0))
 
-def resize_input_to_fit(image, bg_size, scale):
-    bg_w, bg_h = bg_size
-    img_w, img_h = image.size
+def resize_input_relative(image, scale):
+    """
+    Resize the image by a given scale (e.g., 1.1 for 110%, 0.9 for 90%).
+    """
+    w, h = image.size
+    new_w = int(w * scale)
+    new_h = int(h * scale)
+    return image.resize((new_w, new_h), Image.Resampling.LANCZOS)
 
-    if img_w <= bg_w and img_h <= bg_h:
-        return image
 
-    max_w = int(bg_w * scale)
-    max_h = int(bg_h * scale)
-    image.thumbnail((max_w, max_h), Image.ANTIALIAS)
-    return image
+
