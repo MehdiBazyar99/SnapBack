@@ -223,7 +223,7 @@ def _build_tab_advanced(frame, state):
     tk.Entry(size_frame, textvariable=state['custom_height'], width=7).pack(side='left')
 
     row += 1
-    ttk.Label(frame, text="Resize Input if Larger (%):").grid(row=row, column=0, sticky='w', padx=5, pady=2)
+    ttk.Label(frame, text="Resize Overlay (%):").grid(row=row, column=0, sticky='w', padx=5, pady=2)
     tk.Entry(frame, textvariable=state['resize_scale'], width=10).grid(row=row, column=1, sticky='w', padx=5, pady=2)
 
     row += 1

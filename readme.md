@@ -91,6 +91,7 @@ Output will be in the `dist/` folder.
 
 ---
 
+
 ## 🧠 How SnapBack Remembers Stuff
 
 ✅ Remembers:
@@ -101,7 +102,15 @@ Output will be in the `dist/` folder.
 🚫 Doesn’t remember:
 - Last input file/folder (for simplicity and privacy)
 
----
+🗂️ **Where it's saved:**  
+Settings are stored in a config file located at:
+
+```
+~/.snapback_config.json
+```
+
+This resolves to your home directory, like `C:\Users\YourName` on Windows.
+
 
 ## 📸 Screenshots
 
