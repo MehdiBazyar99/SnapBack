@@ -7,6 +7,8 @@ We do NOT store input_path / input_type in config, so they reset each run.
 
 import tkinter as tk
 from tkinter import ttk, filedialog, messagebox
+import os # Required for os.path.isfile
+from helpers import update_image_count # Added import
 
 def build_ui(root, user_config):
     """
@@ -15,8 +17,6 @@ def build_ui(root, user_config):
     :param user_config: The config loaded from config.py (which won't include input_path/input_type).
     :return: A dict of tkinter StringVars + references to certain widgets (for drag/drop).
     """
-    # Set default window dimensions to 420x380
-    root.geometry("420x380")
     # Main frame
     main_frame = ttk.Frame(root, padding=10)
     main_frame.grid(row=0, column=0, sticky='nsew')
@@ -82,7 +82,28 @@ def build_ui(root, user_config):
     state['progress_bar'] = ttk.Progressbar(status_frame, mode='determinate')
     state['progress_bar'].grid(row=0, column=1, sticky='ew', padx=5, pady=2)
 
+    _sync_image_count(state) # Initial image count update
+
     return state
+
+def _sync_image_count(state):
+    """
+    Updates the image_count in the state based on input_type and input_path.
+    """
+    input_type = state['input_type'].get()
+    input_path_val = state['input_path'].get()
+
+    if input_type == "File":
+        if input_path_val and os.path.isfile(input_path_val):
+            state['image_count'].set("1 image selected.")
+        elif input_path_val: # Path is set but not a file
+            state['image_count'].set("Invalid file selected.")
+        else: # Path is not set
+            state['image_count'].set("No file selected.")
+    elif input_type == "Folder":
+        # update_image_count from helpers.py handles folder counts and specific messages
+        # like "Input folder not set.", "Invalid input folder.", "No images found in folder."
+        update_image_count(state)
 
 def _build_menus(menubar, root):
     filemenu = tk.Menu(menubar, tearoff=False)
@@ -128,7 +149,7 @@ def _build_tab_bg_input(frame, state):
 
     row += 1
     ttk.Label(frame, text="Input Type:").grid(row=row, column=0, sticky='w', padx=5, pady=2)
-    om_input_type = ttk.OptionMenu(frame, state['input_type'], state['input_type'].get(), "Folder", "File")
+    om_input_type = ttk.OptionMenu(frame, state['input_type'], state['input_type'].get(), "Folder", "File", command=lambda *args: _sync_image_count(state))
     om_input_type.grid(row=row, column=1, sticky='w', padx=5, pady=2)
 
     row += 1
@@ -256,6 +277,7 @@ def _select_input(state):
         path = filedialog.askopenfilename(filetypes=[("Image files", "*.png *.jpg *.jpeg *.webp")])
     if path:
         state['input_path'].set(path)
+        _sync_image_count(state) # Update count after selecting a file/folder
 
 def _select_output_folder(state):
     path = filedialog.askdirectory()

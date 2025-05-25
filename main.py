@@ -8,11 +8,16 @@ Saves user config between sessions, is resizable, and supports drag-and-drop.
 import tkinter as tk
 from tkinter import ttk
 from tkinterdnd2 import TkinterDnD
-from PIL import ImageTk
+import shutil # Added import
+import os # Added import
+from PIL import ImageTk, Image # Ensure Image is imported for Image.Resampling
 from ui_components import build_ui
 from dragdrop import configure_drag_and_drop
 from logic import preview_sample, process_images
 from config import load_config, save_config
+
+# Define APP_DATA_DIR (consistent with dragdrop.py)
+APP_DATA_DIR = os.path.join(os.path.expanduser("~"), ".snapback")
 
 def main():
     # Load last-saved user configuration
@@ -47,6 +52,10 @@ def main():
     def on_closing():
         geometry = root.winfo_geometry().split('+')[0]  # e.g. '900x700'
         save_config(state, geometry)
+        # Cleanup "Dropped Inputs" folder
+        drop_folder_path = os.path.join(APP_DATA_DIR, "Dropped Inputs")
+        if os.path.exists(drop_folder_path):
+            shutil.rmtree(drop_folder_path)
         root.destroy()
 
     root.protocol("WM_DELETE_WINDOW", on_closing)
@@ -62,11 +71,59 @@ def show_preview(img):
     win.title("Preview")
     win.resizable(True, True)
 
-    img.thumbnail((1000, 800))
-    img_tk = ImageTk.PhotoImage(img)
-    lbl = tk.Label(win, image=img_tk)
-    lbl.image = img_tk  # Keep a reference
+    # Store the original image on the label for access in the resize handler
+    lbl = tk.Label(win) # Create label first
+    lbl.original_image = img # Store original PIL image
     lbl.pack(expand=True, fill=tk.BOTH)
+
+    # Bind the resize event
+    win.bind('<Configure>', lambda event: resize_preview_image(event, lbl))
+
+    # Perform initial sizing after window is drawn
+    win.update_idletasks() 
+    # Call resize_preview_image once to set the initial image correctly
+    # We pass a dummy event-like object for the first call if needed, or rely on lbl dimensions
+    class DummyEvent:
+        def __init__(self, width, height):
+            self.width = width
+            self.height = height
+    
+    resize_preview_image(DummyEvent(lbl.winfo_width(), lbl.winfo_height()), lbl)
+
+
+def resize_preview_image(event, lbl):
+    """
+    Resize the preview image when the window is resized.
+    """
+    if not hasattr(lbl, 'original_image') or lbl.original_image is None:
+        return
+
+    original_img = lbl.original_image
+    
+    # Get label's current size
+    # Use event.width and event.height if they are reliably > 0, otherwise fallback
+    # to lbl.winfo_width/height, but these can also be 0 or 1 initially on some platforms.
+    # A small delay or update_idletasks() before first call helps.
+    widget_width = lbl.winfo_width()
+    widget_height = lbl.winfo_height()
+
+    if widget_width <= 1 or widget_height <= 1: # Avoid issues with zero or minimal dimensions
+        return
+
+    # Create a copy of the original image to resize
+    img_copy = original_img.copy()
+
+    # Resize the copy using thumbnail to maintain aspect ratio
+    # Use Image.Resampling.LANCZOS for high-quality downscaling
+    img_copy.thumbnail((widget_width, widget_height), Image.Resampling.LANCZOS)
+
+    # Create a new PhotoImage
+    img_tk = ImageTk.PhotoImage(img_copy)
+
+    # Update the label
+    lbl.config(image=img_tk)
+    lbl.image = img_tk # Keep a reference
+
 
 if __name__ == "__main__":
     main()

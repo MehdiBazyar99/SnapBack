@@ -5,7 +5,12 @@ Configures drag-and-drop for background and input image entries in SnapBack.
 """
 
 import os
+import shutil # Added import
 from tkinterdnd2 import DND_FILES
+from helpers import update_image_count # Added import
+
+# Define APP_DATA_DIR
+APP_DATA_DIR = os.path.join(os.path.expanduser("~"), ".snapback")
 
 def configure_drag_and_drop(root, state):
     """
@@ -55,29 +60,14 @@ def handle_input_drop(event, state):
             state['input_path'].set(input_files[0])
             state['image_count'].set("1 image selected.")
         else:
-            drop_folder = os.path.join(os.path.dirname(input_files[0]), "Dropped Inputs")
-            os.makedirs(drop_folder, exist_ok=True)
+            # Use APP_DATA_DIR for the drop_folder
+            drop_folder = os.path.join(APP_DATA_DIR, "Dropped Inputs")
+            os.makedirs(drop_folder, exist_ok=True) # Ensure directory exists
             for img in input_files:
                 basename = os.path.basename(img)
                 target = os.path.join(drop_folder, basename)
-                if not os.path.exists(target):
-                    try:
-                        os.link(img, target)
-                    except Exception:
-                        import shutil
-                        shutil.copy(img, target)
+                # Always use shutil.copy2 and overwrite if exists
+                shutil.copy2(img, target)
             state['input_type'].set("Folder")
             state['input_path'].set(drop_folder)
             update_image_count(state)
-
-def update_image_count(state):
-    folder = state['input_path'].get()
-    if not os.path.isdir(folder):
-        state['image_count'].set("No input folder selected.")
-        return
-
-    count = len([
-        f for f in os.listdir(folder)
-        if f.lower().endswith(('.png', '.jpg', '.jpeg', '.webp'))
-    ])
-    state['image_count'].set(f"{count} image(s) found.")

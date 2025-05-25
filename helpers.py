@@ -73,4 +73,25 @@ def resize_input_relative(image, scale):
     return image.resize((new_w, new_h), Image.Resampling.LANCZOS)
 
 
+def update_image_count(state):
+    """
+    Updates the image_count in the state based on the input_path and input_type.
+    Handles empty path, invalid path, and counts images in a folder.
+    """
+    folder = state['input_path'].get()
+    if not folder:
+        state['image_count'].set("Input folder not set.")
+        return
+    if not os.path.isdir(folder):
+        state['image_count'].set("Invalid input folder.")
+        return
 
+    count = len([
+        f for f in os.listdir(folder)
+        if f.lower().endswith(('.png', '.jpg', '.jpeg', '.webp'))
+    ])
+    
+    if count == 0:
+        state['image_count'].set("No images found in folder.")
+    else:
+        state['image_count'].set(f"{count} image(s) found.")
